@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import {useNavigation} from "@react-navigation/native"
-import { StyleSheet, View, Text } from 'react-native'
+import { Alert, Modal, StyleSheet, View, Text } from 'react-native'
 import { Input, Icon, Button, Tooltip } from 'react-native-elements'
 import { isEmpty } from 'lodash'
 import firebase from 'firebase'
@@ -9,6 +9,7 @@ import firebase from 'firebase'
 export default function LoginForm(){
     const navigation = useNavigation()
     const [formData, setFormData] = useState({usuario:"", password:""})
+    const [alerta, setAlerta] = useState("");
     console.log(formData)
 
     const onChange = (e, type) =>{
@@ -22,20 +23,22 @@ export default function LoginForm(){
         console.log(formData)
 
         if(isEmpty(formData.usuario) || isEmpty(formData.password)){
-            console.log("todos los campos son obligatorios")
+            setAlerta("todos los campos son obligatorios")
         }else{
             firebase.auth().signInWithEmailAndPassword(formData.usuario, formData.password)
             .then((userCredential) => {
                 // Signed in
                 var user = userCredential.user;
                 console.log(user.refreshToken)
-                navigation.navigate("AccountStack")
-                // ...
+                setAlerta("datos correctos")
+                navigation.navigate("AccountStack") 
             })
             .catch((error) => {
                 var errorCode = error.code;
                 var errorMessage = error.message;
                 console.log(error)
+                
+                setAlerta(error.message)
             });
         }
 
@@ -43,6 +46,7 @@ export default function LoginForm(){
 
     return(
         <View style={styles.formContainer}>
+           
             <Input 
                 placeholder="usuario o correo"
                 onChange={(e)=> onChange(e, "usuario")}
@@ -57,6 +61,9 @@ export default function LoginForm(){
                 password={true}
                 secureTextEntry={true}
             />
+            <Text style={styles.alerta}>
+                {alerta}
+            </Text>
             <Button 
                 title="Iniciar Sesion"
                 containerStyle={styles.btnContainerLogin}
@@ -68,6 +75,9 @@ export default function LoginForm(){
 }
 
 const styles = StyleSheet.create({
+    alerta:{
+        color: "#e63c3c"
+    },
     formContainer:{
         flex:1,
         alignItems: "center",
